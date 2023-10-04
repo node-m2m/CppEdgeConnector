@@ -2,7 +2,8 @@
 ## Edge C/C++ Connector Application (Linux endpoint)
 ![](assets/cplusplusEdgeConnector.svg)
 
-In this quick tour, the edge client will attempt to capture data from a C/C++ connector  application through inter-process communication (IPC).
+In this quick tour, the edge client will attempt to capture data from a C/C++ connector application through inter-process communication (IPC). 
+The client will send a standard json payload {topic:"random-data", value:""} to the connector server where it will provide the random value.  
 
 We will use the nlohmann-json (https://github.com/nlohmann/json) library for the *json* data interchange.
 
