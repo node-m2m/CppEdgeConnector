@@ -3,7 +3,8 @@
 ![](assets/cplusplusEdgeConnector.svg)
 
 In this quick tour, the edge client will attempt to capture data from a C/C++ connector application through inter-process communication (IPC). 
-The client will send a standard json payload {topic:"random-data", value:""} to the connector server where it will provide the random value.  
+The client will send a standard json payload {topic:"random-data", method:"node-edge-read", value:""} for network read 
+and {topic:"name-data", method:"node-edge-write", payload:"Tony Stark", value:""} for network write. The connector server will then provide a result for the value property.  
 
 We will use the nlohmann-json (https://github.com/nlohmann/json) library for the *json* data interchange.
 
@@ -33,16 +34,18 @@ Check and verify the *device.cpp* source file is the the same as shown below.
 using namespace std;
 using json = nlohmann::json;
 
+string name = "";
+
+auto getRandomData(json j)
+{
+    int rn = rand() % 100 + 10;
+    string rd = to_string(rn);
+    j["value"] = rd;
+    return j.dump(); 
+}
+
 int main()
 {
-    auto getRandomData = [](auto j)
-    {
-        int rn = rand() % 100 + 10;
-        string rd = to_string(rn);
-        j["value"] = rd;
-        return j.dump(); 
-    };
-
     cout << "\n*** C++ Tcp Edge Connector Server ***\n" << endl;
 
     auto s = make_shared<Tcp::Server>(5300);
@@ -62,12 +65,21 @@ int main()
             try{
                 auto j = json::parse(data);
 
-                if(j["topic"] == "random-data"){
+                if(j["method"] == "node-edge-read" && j["topic"] == "random-data" ){
                     auto rd = std::async(getRandomData, j);
                     rd.wait();
                     auto r = rd.get();
                     s->write(r);
-                    cout << "json string result: " << r << '\n';  
+                    cout << "read json string result: " << r << '\n';  
+                }
+                else if(j["method"] == "node-edge-write" && j["topic"] == "name-data" ){
+                    name = j["payload"];
+                    if(name == j["payload"]){
+                        j["value"] = "write success";
+                        s->write(j.dump());
+                        cout << "write name: " << name << '\n';  
+                        cout << "write json string result: " << j << '\n';  
+                    }
                 }
                 else{
                     cout << "invalid topic:" << s->write("invalid topic") << endl;
@@ -125,6 +137,8 @@ $ npm install m2m
 
 #### 2. Save the code below as client.js in the client directory.
 ```js
+'use strict'
+
 const {User, Edge} = require('m2m')  
 
 // Create a user object to authenticate your edge application
@@ -132,7 +146,7 @@ let user = new User()
 
 let edge = new Edge()
 
-let n = 0
+let d = '', n = 0 
 
 async function main(){
 
@@ -144,25 +158,37 @@ async function main(){
      */
     let ec = new edge.client({ port:5300, ip:'127.0.0.1', secure:false, restart:false }) 
 
+    // write to connector server
+    d = await ec.write('name-data', 'Tony Stark')
+
+    try{
+        let jd = JSON.parse(d)
+        console.log('ec write name-data result:', jd.value)
+        n++
+    }
+    catch (e){
+        console.log('json write parse error: ', d.toString())
+    }
+
     let interval = setInterval(async () => {
-        // read the data from the edge connector
-        let data = await ec.read('random-data')
+
+        // read from connector server
+        d = await ec.read('random-data')
 
         // stop the data collection after 5 samples
         if(n === 5){
             console.log('no. of sample data', n)
             return clearInterval(interval)
         }     
-
+        
         try{
-            let jd = JSON.parse(data)
+            let jd = JSON.parse(d)
             console.log('ec read random-data value:', jd.value)
             n++
         }
         catch (e){
-            console.log('json parse error: ', data1.toString())
+            console.log('json read parse error: ', d.toString())
         }
-
     }, 5000)
 }
 
