@@ -4,7 +4,7 @@
 
 In this quick tour, the edge client will attempt to capture data from a C/C++ connector application through inter-process communication (IPC). 
 The client will send a standard json payload {topic:"random-data", method:"node-edge-read", value:""} for network read 
-and {topic:"name-data", method:"node-edge-write", payload:"Tony Stark", value:""} for network write. The connector server will then provide a result for the value property.  
+and {topic:"name-data", method:"node-edge-write", payload:"Tony Stark", value:""} for network write. The connector server will then provide a client write result and random value for client read.  
 
 We will use the nlohmann-json (https://github.com/nlohmann/json) library for the *json* data interchange.
 
@@ -199,6 +199,7 @@ $ node client.js
 The client should receive *json* data with random values similar as shown below.
 
 ```js
+ec write name-data result: Tony Stark
 ec read random-data value: 35
 ec read random-data value: 94
 ec read random-data value: 37
