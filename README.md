@@ -139,10 +139,7 @@ $ npm install m2m
 ```js
 'use strict'
 
-const {User, Edge} = require('m2m')  
-
-// Create a user object to authenticate your edge application
-let user = new User()
+const { Edge } = require('m2m')  
 
 let edge = new Edge()
 
@@ -151,7 +148,7 @@ let d = '', n = 0
 async function main(){
 
     // authenticate the edge application
-    await user.connect() 
+    await edge.connect() 
 
     /**
      * Create an edge client
@@ -175,7 +172,7 @@ async function main(){
         // read from connector server
         d = await ec.read('random-data')
 
-        // stop the data collection after 5 samples
+        // stop collecting data after 5 samples
         if(n === 5){
             console.log('no. of sample data', n)
             return clearInterval(interval)
@@ -189,6 +186,7 @@ async function main(){
         catch (e){
             console.log('json read parse error: ', d.toString())
         }
+
     }, 5000)
 }
 
