@@ -1,8 +1,8 @@
 
-## Edge C/C++ Connector Application (Linux endpoint)
+## C/C++ Edge Connector Server (Linux endpoint)
 ![](assets/cplusplusEdgeConnector.svg)
 
-In this quick tour, the edge client will attempt to capture data from a C/C++ connector application through inter-process communication (IPC).
+In this quick tour, an edge client will attempt to capture data from a C/C++ connector server application through inter-process communication (IPC).
 <br>
 
 The client will send a standard json payload {topic:"random-data", method:"node-edge-read", value:""} for network read 
